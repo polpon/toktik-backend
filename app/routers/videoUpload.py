@@ -35,11 +35,16 @@ async def convertComplete(randomFN: RandomFileName):
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connection.channel()
 
-    channel.queue_declare(queue='convert')
+    channel.queue_declare(queue='chunk')
 
     channel.basic_publish(exchange='',
-                        routing_key='convert',
+                        routing_key='chunk',
                         body=randomFN.filename)
     print(f" [x] Sent '{randomFN.filename}'")
     connection.close()
+    return
+
+@router.post("/chunk-completed")
+async def convertComplete(randomFN: RandomFileName):
+    print(randomFN.filename)
     return
