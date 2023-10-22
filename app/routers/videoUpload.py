@@ -19,49 +19,17 @@ async def uploadComplete(randomFN: RandomFileName):
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connection.channel()
 
-    channel.queue_declare(queue='hello')
+    channel.queue_declare(queue='from.backend')
 
     channel.basic_publish(exchange='',
-                        routing_key='hello',
+                        routing_key='from.backend',
                         body=randomFN.filename)
     print(f" [x] Sent '{randomFN.filename}'")
     connection.close()
     return
 
-@router.post("/convert-completed")
-async def convertComplete(randomFN: RandomFileName):
-    print(randomFN.filename)
 
-    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
-    channel = connection.channel()
-
-    channel.queue_declare(queue='thumbnail')
-
-    channel.basic_publish(exchange='',
-                        routing_key='thumbnail',
-                        body=randomFN.filename)
-    print(f" [x] Sent '{randomFN.filename}'")
-    connection.close()
-    return
-
-@router.post("/thumbnail-completed")
-async def uploadComplete(randomFN: RandomFileName):
-    print(randomFN.filename)
-
-    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
-    channel = connection.channel()
-
-    channel.queue_declare(queue='chunk')
-
-    channel.basic_publish(exchange='',
-                        routing_key='chunk',
-                        body=randomFN.filename)
-    
-    print(f" [x] Sent '{randomFN.filename}'")
-    connection.close()
-    return
-
-@router.post("/chunk-completed")
-async def convertComplete(randomFN: RandomFileName):
-    print(randomFN.filename)
+@router.post("/process-completed")
+async def processComplete(randomFN: RandomFileName):
+    print("processing completed for: "+randomFN.filename)
     return
