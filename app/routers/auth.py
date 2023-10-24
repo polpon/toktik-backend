@@ -31,12 +31,27 @@ def get_db():
 
 oauth2_scheme = OAuth2PasswordBearerWithCookie(tokenUrl="/whoami")   #changed to use our implementation
 
-@router.post("/register", response_model=schemas.User)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_username(db, username=user.username)
+@router.post("/register", response_model=Token)
+def create_user(
+    response: Response,
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+    ):
+    db_user = crud.get_user_by_username(db, username=form_data.username)
     if db_user:
         raise HTTPException(status_code=400, detail="username already existed")
-    return crud.create_user(db=db, user=user)
+
+    crud.create_user(db=db, user=form_data)
+
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": form_data.username}, expires_delta=access_token_expires
+    )
+
+    ## set HttpOnly cookie in response
+    response.set_cookie(key="access_token",value=f"Bearer {access_token}", httponly=True)
+
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.get("/users/{user_id}", response_model=schemas.User)
@@ -55,7 +70,6 @@ def login_for_access_token(
     ):
 
     user = authenticate_user(db, form_data.username, form_data.password)
-    print(user)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
