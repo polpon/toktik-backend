@@ -15,8 +15,11 @@ async def getPresignedUrl(file: File):
 @router.post("/upload-completed")
 async def uploadComplete(randomFN: RandomFileName):
     print(randomFN.filename)
+    try:
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq', port=5672))
+    except:
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
 
-    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connection.channel()
 
     channel.queue_declare(queue='from.backend')
