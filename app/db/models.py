@@ -12,15 +12,17 @@ class User(Base):
     hashed_password = Column(String(255))
     is_active = Column(Boolean, default=True)
 
-    items = relationship("Item", back_populates="owner")
+    videos = relationship("Video", back_populates="owner")
 
 
-class Item(Base):
-    __tablename__ = "items"
+class Video(Base):
+    __tablename__ = "videos"
 
     id = Column(Integer, primary_key=True, index=True)
+    uuid = Column(String(255), unique=True)
     title = Column(String(255), index=True)
+    status = Column(String(255))
     description = Column(String(255), index=True)
-    owner_id = Column(Integer, ForeignKey("users.id"))
+    owner_uuid = Column(String(255), ForeignKey("users.username"))
 
-    owner = relationship("User", back_populates="items")
+    owner = relationship("User", back_populates="videos")

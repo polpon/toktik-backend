@@ -17,7 +17,7 @@ from jose import JWTError, jwt
 router = APIRouter()
 SECRET_KEY = "a87fa0c0149a26f02696619942c15a588794b8abe1fdb9ff55b6aac08ec4b0c7"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 1
+ACCESS_TOKEN_EXPIRE_MINUTES = 10
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -108,5 +108,14 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Se
 @router.delete("/logout")
 async def signout(response: Response):
     response.delete_cookie(key="access_token")
-
     return True
+
+
+@router.get("/get_videos")
+async def getVideo(db: Session = Depends(get_db)):
+    return crud.get_videos(db)
+
+
+@router.get("/get_videos/{user_id}")
+async def getVideo(user_id: str, db: Session = Depends(get_db)):
+    return crud.get_videos_by_user(db, user_id)

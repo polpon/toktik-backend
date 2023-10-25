@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
+from uuid import uuid4
 
 from . import models, schemas
 
@@ -28,16 +29,20 @@ def create_user(db: Session, user: schemas.UserCreate):
     return db_user
 
 
-def get_items(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Item).offset(skip).limit(limit).all()
+def get_videos(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.Video).offset(skip).limit(limit).all()
 
 
-def create_user_item(db: Session, item: schemas.ItemCreate, user_id: int):
-    db_item = models.Item(**item.dict(), owner_id=user_id)
-    db.add(db_item)
+def get_videos_by_user(db: Session, username: str, skip: int = 0, limit: int = 100):
+    return db.query(models.Video).filter(models.Video.owner_uuid == username).offset(skip).limit(limit).all()
+
+
+def create_user_video(db: Session, video: schemas.Video):
+    db_video = models.Video(**video.dict())
+    db.add(db_video)
     db.commit()
-    db.refresh(db_item)
-    return db_item
+    db.refresh(db_video)
+    return db_video
 
 
 def verify_password(plain_password, hashed_password):

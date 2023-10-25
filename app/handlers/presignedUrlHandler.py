@@ -24,4 +24,4 @@ def get_presigned_url_upload(file_name: str, file_type: str):
                                                 'Key': f'{key}'},
                                         ExpiresIn=300)
 
-        return {"url": url, "fn": filename + "." + extension}
+        return (url, filename, extension)
