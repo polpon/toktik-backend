@@ -55,7 +55,7 @@ async def getPresignedUrl(
 
     presigned_obj = get_presigned_url_upload(video.uuid, video.filetype)
 
-    crud.create_user_video(db=db, video=schemas.Video(uuid=presigned_obj[1], owner_uuid=token_data.username))
+    crud.create_user_video(db=db, video=schemas.Video(uuid=presigned_obj[1], owner_uuid=token_data.username, title=video.title, description=video.description))
 
     return {"owner_uuid": token_data.username, "url": presigned_obj[0], "filename": presigned_obj[1], "extension": presigned_obj[2]}
 
