@@ -1,5 +1,6 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from .engine import Base
 
@@ -23,6 +24,7 @@ class Video(Base):
     title = Column(String(255), index=True)
     status = Column(String(255))
     description = Column(String(255), index=True)
+    created_date = Column(DateTime(timezone=True), server_default=func.now())
     owner_uuid = Column(String(255), ForeignKey("users.username"))
 
     owner = relationship("User", back_populates="videos")

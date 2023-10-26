@@ -45,6 +45,16 @@ def create_user_video(db: Session, video: schemas.Video):
     return db_video
 
 
+def change_video_status(db: Session, video_name: str, username: str, status: str):
+    try:
+        db.query(models.Video).filter(models.Video.uuid == video_name).filter(models.Video.owner_uuid == username).update({'status': status})
+        db.commit()
+        return True
+    except Exception as e:
+        print(e)
+        return False
+
+
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
