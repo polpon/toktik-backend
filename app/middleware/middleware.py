@@ -5,7 +5,7 @@ from fastapi.security.utils import get_authorization_scheme_param
 
 from app.utils.auth import OAuth2PasswordBearerWithCookie
 
-allowed_endpoints = {"/logout","/openapi.json", "/whoami" ,"/docs", "/login", "/process-completed"}
+allowed_endpoints = {"/logout","/openapi.json", "/whoami" ,"/docs", "/login", "/process-completed", "/refresh"}
 
 class MyMiddleware(BaseHTTPMiddleware):
     def __init__(

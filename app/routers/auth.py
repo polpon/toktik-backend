@@ -1,7 +1,10 @@
+import os
+
 from datetime import timedelta
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, Response, status, APIRouter
+from fastapi import Depends, HTTPException, Request, Response, status, APIRouter
+from fastapi.security.utils import get_authorization_scheme_param
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 from app.db.engine import SessionLocal, engine
@@ -9,15 +12,19 @@ from app.db import models, schemas, crud
 
 from app.models.tokenModel import Token, TokenData
 from app.utils.utils import create_access_token#, authenticate_user   #new
-from app.utils.auth import OAuth2PasswordBearerWithCookie
+from app.utils.auth import *
 from app.db.crud import authenticate_user, get_user_by_username
 
 from jose import JWTError, jwt
+from dotenv import load_dotenv
+
+load_dotenv()
 
 router = APIRouter()
-SECRET_KEY = "a87fa0c0149a26f02696619942c15a588794b8abe1fdb9ff55b6aac08ec4b0c7"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 10
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
+REFRESH_TOKEN_EXPIRE_MINUTES = os.getenv("REFRESH_TOKEN_EXPIRE_MINUTES")
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -30,6 +37,7 @@ def get_db():
         db.close()
 
 oauth2_scheme = OAuth2PasswordBearerWithCookie(tokenUrl="/whoami")   #changed to use our implementation
+
 
 @router.post("/register", response_model=Token)
 def create_user(
@@ -48,10 +56,16 @@ def create_user(
         data={"sub": form_data.username}, expires_delta=access_token_expires
     )
 
+    refresh_token_expires = timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
+    refresh_token = create_access_token(
+        data={"sub": form_data.username}, expires_delta=refresh_token_expires
+    )
+
     ## set HttpOnly cookie in response
     response.set_cookie(key="access_token",value=f"Bearer {access_token}", httponly=True)
+    response.set_cookie(key="access_token",value=f"Bearer {refresh_token}", httponly=True)
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 
 @router.get("/users/{user_id}", response_model=schemas.User)
@@ -81,13 +95,53 @@ def login_for_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
 
+    refresh_token_expires = timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
+    refresh_token = create_access_token(
+        data={"sub": user.username}, expires_delta=refresh_token_expires
+    )
+
     ## set HttpOnly cookie in response
     response.set_cookie(key="access_token",value=f"Bearer {access_token}", httponly=True)
+    response.set_cookie(key="refresh_token",value=f"Bearer {refresh_token}", httponly=True)
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+
+
+@router.get("/refresh", response_model=Token)
+async def get_current_user(
+    request: Request,
+    response: Response
+    ):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials"
+    )
+    try:
+        refresh_token: str = request.cookies.get("refresh_token")  #changed to accept access token from httpOnly Cookie
+        _, param = get_authorization_scheme_param(refresh_token)
+        payload = jwt.decode(token=param, key=SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": username}, expires_delta=access_token_expires
+    )
+
+    ## set HttpOnly cookie in responses
+    response.set_cookie(key="access_token",value=f"Bearer {access_token}", httponly=True)
+
+    return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+
 
 @router.get("/whoami", response_model=schemas.User)
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_db)):
+async def get_current_user(
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Session = Depends(get_db)
+    ):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials"
@@ -104,6 +158,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Se
     if user is None:
         raise credentials_exception
     return user
+
 
 @router.delete("/logout")
 async def signout(response: Response):
