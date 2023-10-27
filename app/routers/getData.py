@@ -6,7 +6,7 @@ import pika
 import boto3
 import os
 
-router = APIRouter()
+router = APIRouter(prefix="/api")
 
 bucket_name_main = "toktik-s3"
 bucket_name_videos = "toktik-s3-videos"

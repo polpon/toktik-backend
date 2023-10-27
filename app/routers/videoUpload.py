@@ -21,7 +21,7 @@ ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = float(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
 
-router = APIRouter()
+router = APIRouter(prefix="/api")
 oauth2_scheme = OAuth2PasswordBearerWithCookie(tokenUrl="/get-presigned-url")
 
 models.Base.metadata.create_all(bind=engine)
