@@ -83,7 +83,7 @@ async def uploadComplete(
     crud.change_video_status(db, video.uuid, video.owner_uuid, "processing")
 
     try:
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq', port=5672))
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbit-mq', port=5672))
     except:
         connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
 
