@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta
+import os
+import shutil
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -33,6 +35,25 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
+def delete_files_in_directory(directory_path):
+   try:
+     with os.scandir(directory_path) as entries:
+       for entry in entries:
+         if entry.is_file():
+            os.unlink(entry.path)
+     print("All files deleted successfully.")
+   except OSError:
+     print("Error occurred while deleting files.")
+
+
+def delete_folder_with_contents(folder_path):
+    try:
+        shutil.rmtree(folder_path)
+        print(f"Folder '{folder_path}' and its contents have been deleted successfully.")
+    except FileNotFoundError:
+        print(f"Folder '{folder_path}' not found.")
+    except Exception as e:
+        print(f"An error occurred while deleting the folder: {str(e)}")
 
 # async def get_current_active_user(
 #     current_user: Annotated[User, Depends(get_current_user)]

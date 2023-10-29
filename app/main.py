@@ -15,13 +15,13 @@ from fastapi import Depends, FastAPI, Request, Response
 
 app = FastAPI()
 
+origins = ["*"]
+
 app.include_router(m3u8.router)
 app.include_router(auth.router)
 app.include_router(videoUpload.router)
 app.include_router(getData.router)
-# app.add_middleware(MyMiddleware)
-origins = ["*"]
-
+app.add_middleware(MyMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,

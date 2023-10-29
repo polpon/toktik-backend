@@ -6,6 +6,7 @@ from fastapi import APIRouter, Response
 from os.path import isfile
 from mimetypes import guess_type
 from dotenv import load_dotenv
+from ..utils.utils import delete_folder_with_contents
 
 load_dotenv()
 
@@ -50,8 +51,11 @@ async def get_legacy_data(path: str, filename: str):
             else:
                 file.write(line)
 
+    # Put entire file into memory
     with open(fullpath) as f:
         content = f.read()
+
+    delete_folder_with_contents('./static/' + path)
 
     content_type, _ = guess_type(fullpath)
     return Response(content, media_type=content_type)
@@ -91,8 +95,11 @@ async def get_site(path, filename):
             else:
                 file.write(line)
 
+    # Put the entire file into memory
     with open(fullpath) as f:
         content = f.read()
+
+    delete_folder_with_contents('./static/' + path)
 
     content_type, _ = guess_type(fullpath)
     return Response(content, media_type=content_type)
