@@ -7,9 +7,9 @@ from app.handlers.presigned_url_handler import get_presigned_url_upload
 from app.utils.auth import OAuth2PasswordBearerWithCookie
 from app.handlers.random_video_handler import getrandom
 from app.db.engine import SessionLocal, engine
-from app.models.tokenModel import TokenData
+from app.models.token_model import TokenData
 from app.db import models, schemas, crud
-from app.models.fileModel import File
+from app.models.file_model import File
 
 from jose import JWTError, jwt
 from dotenv import load_dotenv
