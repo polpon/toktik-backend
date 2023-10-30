@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.handlers.presignedUrlHandler import get_presigned_url_upload
+from app.handlers.presigned_url_handler import get_presigned_url_upload
 from app.models.fileModel import File
 import pika
 import boto3

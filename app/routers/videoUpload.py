@@ -3,7 +3,8 @@ from typing import Annotated
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.handlers.presignedUrlHandler import get_presigned_url_upload
+from app.handlers.presigned_url_handler import get_presigned_url_upload
+from app.handlers.randomVIdeoHandler import getrandom
 from app.utils.auth import OAuth2PasswordBearerWithCookie
 from app.db.engine import SessionLocal, engine
 from app.models.tokenModel import TokenData
@@ -109,3 +110,11 @@ async def processComplete(
 
     print("processing completed for: "+ video.filename)
     return
+
+
+@router.post("/get_random_video")
+async def get_random_video():
+
+    folder_list = getrandom()
+
+    return folder_list
