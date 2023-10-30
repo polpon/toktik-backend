@@ -1,7 +1,6 @@
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi.security.utils import get_authorization_scheme_param
 
 from app.utils.auth import OAuth2PasswordBearerWithCookie
 

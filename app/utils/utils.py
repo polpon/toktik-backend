@@ -1,24 +1,17 @@
-from datetime import datetime, timedelta
 import os
 import shutil
-from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
+from jose import jwt
+
+from fastapi import FastAPI
+
+from datetime import datetime, timedelta
+
 from passlib.context import CryptContext
-from app.models.tokenModel import TokenData
 
-from app.db.engine import SessionLocal, engine
-from app.db import models
 
-from app.models.userModel import UserInDB
-from app.utils.auth import OAuth2PasswordBearerWithCookie
-
-# to get a string like this run:
-# openssl rand -hex 32
-SECRET_KEY = "a87fa0c0149a26f02696619942c15a588794b8abe1fdb9ff55b6aac08ec4b0c7"
-ALGORITHM = "HS256"
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

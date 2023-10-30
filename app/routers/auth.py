@@ -5,15 +5,16 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException, Request, Response, status, APIRouter
 from fastapi.security.utils import get_authorization_scheme_param
-from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
+
+from sqlalchemy.orm import Session
+
+from app.db.crud import authenticate_user, get_user_by_username
+from app.models.tokenModel import Token, TokenData
+from app.utils.utils import create_access_token
 from app.db.engine import SessionLocal, engine
 from app.db import models, schemas, crud
-
-from app.models.tokenModel import Token, TokenData
-from app.utils.utils import create_access_token#, authenticate_user   #new
 from app.utils.auth import *
-from app.db.crud import authenticate_user, get_user_by_username
 
 from jose import JWTError, jwt
 from dotenv import load_dotenv

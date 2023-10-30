@@ -1,6 +1,5 @@
-from sqlalchemy.orm import Session
 from passlib.context import CryptContext
-from uuid import uuid4
+from sqlalchemy.orm import Session
 
 from . import models, schemas
 

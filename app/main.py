@@ -1,17 +1,9 @@
-import base64
-from fastapi import FastAPI, HTTPException, status
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse
-from app.middleware.middleware import MyMiddleware
-
-from app.utils.auth import OAuth2PasswordBearerWithCookie
-from fastapi.security.utils import get_authorization_scheme_param
-from .routers import m3u8, getData, auth, videoUpload
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from typing import Annotated, Any
+from app.middleware.middleware import MyMiddleware
 
-from fastapi import Depends, FastAPI, Request, Response
+from .routers import m3u8, getData, auth, videoUpload
 
 app = FastAPI()
 
