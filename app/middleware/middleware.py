@@ -4,7 +4,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.utils.auth import OAuth2PasswordBearerWithCookie
 
-allowed_endpoints = {"/logout","/openapi.json", "/whoami" ,"/docs", "/login", "/signup", "/process-completed", "/refresh"}
+allowed_endpoints = {"logout","openapi.json", "whoami" ,"docs", "login", "register", "process-completed", "refresh"}
 
 class MyMiddleware(BaseHTTPMiddleware):
     def __init__(
@@ -15,7 +15,7 @@ class MyMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         # ignore if its an allowed endpoint
-        if request.url.path not in allowed_endpoints:
+        if request.url.path.split("/")[-1] not in allowed_endpoints:
 
             # do something with the request object, for example
             try:
