@@ -1,9 +1,9 @@
 import pika, json, os
 from typing import Annotated
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 
-from app.handlers.presigned_url_handler import get_presigned_url_upload
+from app.handlers.presigned_url_handler import get_file_from_s3, get_presigned_url_upload
 from app.utils.auth import OAuth2PasswordBearerWithCookie
 from app.handlers.random_video_handler import getrandom
 from app.db.engine import SessionLocal, engine
@@ -118,3 +118,11 @@ async def get_random_video():
     folder_list = getrandom()
 
     return folder_list
+
+
+@router.get("/static/{path}/{filename}")
+async def get_static_from_s3(path: str, filename: str):
+
+    content_type, content = get_file_from_s3(path, filename)
+
+    return Response(content, media_type=content_type)

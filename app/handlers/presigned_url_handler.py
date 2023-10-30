@@ -130,3 +130,37 @@ def get_m3u8_master_from_s3(path: str, filename: str, router):
         content_type, _ = guess_type(fullpath)
 
         return content_type, content
+
+
+def get_file_from_s3(path: str, filename: str):
+        fullpath = './static/img' + path + "/" + filename
+
+        ## Create new buffer folder if it doesnt exist
+        if not os.path.exists('./static/img' + path):
+                os.makedirs('./static/img' + path)
+
+        session = boto3.session.Session()
+        client = session.client('s3',
+                                config=botocore.config.Config(s3={'addressing_style': 'virtual'}), ## Configures to use subdomain/virtual calling format.
+                                region_name='sgp1',
+                                endpoint_url='https://sgp1.digitaloceanspaces.com',
+                                aws_access_key_id=os.getenv('SPACES_KEY'),
+                                aws_secret_access_key=os.getenv('SPACES_SECRET'))
+
+        try:
+                client.download_file("toktik-s3-videos", path + "/" + filename , fullpath)
+        except:
+                return Response(status_code=404)
+
+        if not isfile(fullpath):
+                return Response(status_code=404)
+
+        # Convert the image to a byte array
+        with open(fullpath, 'rb') as f:
+                image_bytes = f.read()
+
+        delete_folder_with_contents('./static/img' + path)
+
+        content_type, _ = guess_type(fullpath)
+
+        return content_type, image_bytes
