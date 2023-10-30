@@ -29,7 +29,10 @@ async def get_legacy_data(path: str, filename: str):
                             aws_access_key_id=os.getenv('SPACES_KEY'),
                             aws_secret_access_key=os.getenv('SPACES_SECRET'))
 
-    client.download_file("toktik-s3-videos", path + "/" + filename, fullpath)
+    try:
+        client.download_file("toktik-s3-videos", path + "/" + filename, fullpath)
+    except:
+        return Response(status_code=404)
 
     if not isfile(fullpath):
         return Response(status_code=404)
@@ -76,7 +79,10 @@ async def get_site(path, filename):
                             aws_access_key_id=os.getenv('SPACES_KEY'),
                             aws_secret_access_key=os.getenv('SPACES_SECRET'))
 
-    client.download_file("toktik-s3-videos", path + "/" + filename , fullpath)
+    try:
+        client.download_file("toktik-s3-videos", path + "/" + filename , fullpath)
+    except:
+        return Response(status_code=404)
 
     if not isfile(fullpath):
         return Response(status_code=404)
