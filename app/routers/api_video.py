@@ -1,15 +1,15 @@
-import pika, json, os
+import pika, json, sys, os
 from typing import Annotated
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from app.handlers.presigned_url_handler import get_file_from_s3, get_presigned_url_upload
 from app.utils.auth import OAuth2PasswordBearerWithCookie
-from app.handlers.random_video_handler import getrandom, purge_video_from_tobechunk
+from app.handlers.video_handler import purge_video_from_tobechunk, purge_video_from_all
 from app.db.engine import SessionLocal, engine
 from app.models.token_model import TokenData
 from app.db import models, schemas, crud
-from app.models.file_model import File
+from app.models.file_model import File, RandomFileName
 
 from jose import JWTError, jwt
 from dotenv import load_dotenv
@@ -154,3 +154,56 @@ async def get_static_from_s3(path: str, filename: str):
     content_type, content = get_file_from_s3(path, filename)
 
     return Response(content, media_type=content_type)
+
+delete_scheme = OAuth2PasswordBearerWithCookie(tokenUrl="/delete_video")
+
+@router.post("/delete_video")
+async def delete_video(
+    file: RandomFileName,
+    token: Annotated[str, Depends(delete_scheme)],
+    db: Session = Depends(get_db)
+):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials"
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    try:
+        crud.delete_video(db, file.filename, username)
+        purge_video_from_all(file.filename)
+        db.commit()
+    except Exception as e:
+        raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Unexpected error:, {sys.exc_info()[0]}"
+                )
+
+    return
+
+get_user_videos_scheme = OAuth2PasswordBearerWithCookie(tokenUrl="/get_user_videos")
+
+@router.get("/get_user_videos")
+async def get_user_videos(
+    token: Annotated[str, Depends(delete_scheme)],
+    db: Session = Depends(get_db)
+):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials"
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    return crud.get_videos_by_user(db, username)
