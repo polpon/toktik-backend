@@ -4,7 +4,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.utils.auth import OAuth2PasswordBearerWithCookie
 
-allowed_endpoints = {"logout","openapi.json", "whoami" ,"docs", "login", "register", "process-completed", "refresh"}
+allowed_endpoints = {"logout","openapi.json", "whoami" ,"docs", "login", "register", "process-completed", "refresh", "process-failed"}
 
 class MyMiddleware(BaseHTTPMiddleware):
     def __init__(

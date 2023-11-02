@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from app.handlers.presigned_url_handler import get_file_from_s3, get_presigned_url_upload
 from app.utils.auth import OAuth2PasswordBearerWithCookie
-from app.handlers.random_video_handler import getrandom
+from app.handlers.random_video_handler import getrandom, purge_video_from_tobechunk
 from app.db.engine import SessionLocal, engine
 from app.models.token_model import TokenData
 from app.db import models, schemas, crud
@@ -109,6 +109,19 @@ async def processComplete(
     crud.change_video_status(db, video.uuid, video.owner_uuid, "ready")
 
     print("processing completed for: "+ video.filename)
+    return
+
+
+@router.post("/process-failed")
+async def processComplete(
+    video: File,
+    db: Session = Depends(get_db)
+):
+    crud.change_video_status(db, video.uuid, video.owner_uuid, "failed")
+
+    purge_video_from_tobechunk(video)
+
+    print("video failed: " + video.filename)
     return
 
 
