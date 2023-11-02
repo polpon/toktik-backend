@@ -3,7 +3,7 @@ import shutil
 
 from jose import jwt
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 from datetime import datetime, timedelta
 
@@ -48,9 +48,15 @@ def delete_folder_with_contents(folder_path):
     except Exception as e:
         print(f"An error occurred while deleting the folder: {str(e)}")
 
-# async def get_current_active_user(
-#     current_user: Annotated[User, Depends(get_current_user)]
-# ):
-#     if current_user.disabled:
-#         raise HTTPException(status_code=400, detail="Inactive user")
-#     return current_user
+
+def verify_format(username: str, password: str):
+    if (username == '' or password == ''):
+       raise HTTPException(status_code=400, detail="Can't be empty")
+
+    if (len(username) < 6):
+        raise HTTPException(status_code=400, detail="Username too short")
+
+    if (len(password) < 8):
+        raise HTTPException(status_code=400, detail="Password too short")
+
+    return

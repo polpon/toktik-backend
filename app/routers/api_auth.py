@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.db.crud import authenticate_user, get_user_by_username
 from app.models.token_model import Token, TokenData
-from app.utils.utils import create_access_token
+from app.utils.utils import create_access_token, verify_format
 from app.db.engine import SessionLocal, engine
 from app.db import models, schemas, crud
 from app.utils.auth import *
@@ -46,6 +46,8 @@ def create_user(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
     ):
+    verify_format(username=form_data.username, password=form_data.password)
+
     db_user = crud.get_user_by_username(db, username=form_data.username)
     if db_user:
         raise HTTPException(status_code=400, detail="username already existed")
@@ -83,6 +85,8 @@ def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
     ):
+
+    verify_format(username=form_data.username, password=form_data.password)
 
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
