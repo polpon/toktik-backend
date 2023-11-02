@@ -13,7 +13,7 @@ bucket_name_main = 'toktik-s3'
 bucket_name_videos = 'toktik-s3-videos'
 
 
-def getrandom():
+def getrandom(db):
     session = boto3.session.Session()
     client = session.client('s3',
                             config=botocore.config.Config(s3={'addressing_style': 'virtual'}), ## Configures to use subdomain/virtual calling format.

@@ -124,13 +124,28 @@ async def processComplete(
     print("video failed: " + video.filename)
     return
 
+random_scheme = OAuth2PasswordBearerWithCookie(tokenUrl="/get_random_video")
 
 @router.post("/get_random_video")
-async def get_random_video():
+async def get_random_video(
+    token: Annotated[str, Depends(random_scheme)],
+    db: Session = Depends(get_db)
+):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials"
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
 
-    folder_list = getrandom()
+    random_videos = crud.get_random_video(db, username)
 
-    return folder_list
+    return random_videos
 
 
 @router.get("/static/{path}/{filename}")

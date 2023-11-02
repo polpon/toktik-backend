@@ -1,5 +1,6 @@
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+from  sqlalchemy.sql.expression import func
 
 from . import models, schemas
 
@@ -52,6 +53,11 @@ def change_video_status(db: Session, video_name: str, username: str, status: str
     except Exception as e:
         print(e)
         return False
+
+
+def get_random_video(db: Session, username: str):
+    random_videos = db.query(models.Video).filter(models.Video.owner_uuid != username).filter(models.Video.status == 'ready').order_by(func.random()).limit(10).all()
+    return random_videos
 
 
 def verify_password(plain_password, hashed_password):
