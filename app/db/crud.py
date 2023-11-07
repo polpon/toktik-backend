@@ -82,3 +82,16 @@ def delete_video(db: Session, file_name: str, username: str):
 
     db.query(models.Video).filter(models.Video.uuid == file_name).filter(models.Video.owner_uuid == username).delete()
     return
+
+def change_video_view(db: Session, file_name: str, add_views: int):
+    try:
+        video = db.query(models.Video).filter(models.Video.uuid == file_name).first()
+        db.query(models.Video).filter(models.Video.uuid == file_name).update({'view_count': video.view_count + add_views})
+        db.commit()
+        return db.query(models.Video).filter(models.Video.uuid == file_name).first().view_count
+    except Exception as e:
+        print(e)
+        return 0
+    
+def get_video(db: Session, file_name: str):
+    return db.query(models.Video).filter(models.Video.uuid == file_name).first()

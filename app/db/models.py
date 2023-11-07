@@ -26,5 +26,5 @@ class Video(Base):
     description = Column(String(255), index=True)
     created_date = Column(DateTime(timezone=True), server_default=func.now())
     owner_uuid = Column(String(255), ForeignKey("users.username"))
-
+    view_count = Column(Integer)
     owner = relationship("User", back_populates="videos")

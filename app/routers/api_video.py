@@ -157,6 +157,27 @@ async def get_static_from_s3(path: str, filename: str):
 
 delete_scheme = OAuth2PasswordBearerWithCookie(tokenUrl="/delete_video")
 
+@router.get("/get_video_view")
+async def get_video_view_count(
+    file: RandomFileName,
+    db: Session = Depends(get_db)
+    ):
+    views = crud.get_video(db, file.filename).view_count
+
+    return views
+
+@router.post("/increment-video-view")
+async def increment_video_view(
+    file: RandomFileName,
+    views: int,
+    db: Session = Depends(get_db)
+    ):
+
+    new_views = crud.change_video_view(db, file.filename, views)
+
+    print("increment completed for: "+ file.filename + "by " + views)
+    return 
+
 @router.post("/delete_video")
 async def delete_video(
     file: RandomFileName,
