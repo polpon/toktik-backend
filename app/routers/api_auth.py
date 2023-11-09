@@ -168,6 +168,7 @@ async def get_current_user(
 @router.delete("/logout")
 async def signout(response: Response):
     response.delete_cookie(key="access_token")
+    response.delete_cookie(key="refresh_token")
     return True
 
 

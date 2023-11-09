@@ -14,6 +14,13 @@ from app.models.file_model import File, RandomFileName
 from jose import JWTError, jwt
 from dotenv import load_dotenv
 
+try:
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbit-mq', port=5672))
+except:
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+
+channel = connection.channel()
+
 load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -81,13 +88,6 @@ async def uploadComplete(
         raise credentials_exception
 
     crud.change_video_status(db, video.uuid, video.owner_uuid, "processing")
-
-    try:
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbit-mq', port=5672))
-    except:
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
-
-    channel = connection.channel()
 
     channel.queue_declare(queue='from.backend')
 
@@ -176,7 +176,7 @@ async def increment_video_view(
     new_views = crud.change_video_view(db, file.filename, views)
 
     print("increment completed for: "+ file.filename + "by " + views)
-    return 
+    return
 
 @router.post("/delete_video")
 async def delete_video(

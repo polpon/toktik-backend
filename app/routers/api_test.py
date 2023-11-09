@@ -21,7 +21,7 @@ def get_db():
     finally:
         db.close()
 
-router = APIRouter(prefix="/test")
+router = APIRouter(prefix="/api")
 
 @router.get("/call_view")
 async def call_view():
@@ -30,15 +30,15 @@ async def call_view():
 
 
 
-@router.get("/get_video_view")
+@router.post("/get_video_view")
 async def get_video_view_count(
     file: RandomFileName,
     db: Session = Depends(get_db)
     ):
     view = crud.get_video(db, file.filename).view_count
-    await sio.emit("getVideoView" + file.filename, view)
+    await sio.emit(file.filename, view, broadcast=True)
 
-    return
+    return view
 
 
 
@@ -50,8 +50,7 @@ async def increment_video_view(
     ):
 
     new_views = crud.change_video_view(db, file.filename, 1)
-    await sio.emit("getVideoView" + file.filename, new_views)
-    print("increment completed for: "+ file.filename + "by 1")
-    return
+    await sio.emit(file.filename, new_views)
+    return new_views
 
 
