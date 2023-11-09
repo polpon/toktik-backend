@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from app.db.engine import Session
+from app.db.engine import Session, SessionLocal
 
 from app.models.file_model import RandomFileName
 
@@ -34,7 +34,7 @@ async def get_video_view_count(
     db: Session = Depends(get_db)
     ):
     view = crud.get_video(db, file.filename).view_count
-    await sio.emit("getVideoView" + file, view)
+    await sio.emit("getVideoView" + file.filename, view)
 
     return
 
@@ -48,8 +48,8 @@ async def increment_video_view(
     ):
 
     new_views = crud.change_video_view(db, file.filename, 1)
-    await sio.emit("getVideoView" + file, new_views)
-    print("increment completed for: "+ file.filename + "by ")
+    await sio.emit("getVideoView" + file.filename, new_views)
+    print("increment completed for: "+ file.filename + "by 1")
     return 
 
 
