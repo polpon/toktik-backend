@@ -1,11 +1,13 @@
 from dotenv import load_dotenv
-from app.db.engine import Session, SessionLocal
+from app.db.engine import SessionLocal
 
 from app.models.file_model import RandomFileName
 
 from ..sio.socket_io import sio
 
 from fastapi import APIRouter, Depends
+
+from sqlalchemy.orm import Session
 
 from app.db import models, schemas, crud
 
@@ -50,6 +52,6 @@ async def increment_video_view(
     new_views = crud.change_video_view(db, file.filename, 1)
     await sio.emit("getVideoView" + file.filename, new_views)
     print("increment completed for: "+ file.filename + "by 1")
-    return 
+    return
 
 
