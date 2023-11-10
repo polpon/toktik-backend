@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, ForeignKeyConstraint, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -27,4 +27,15 @@ class Video(Base):
     created_date = Column(DateTime(timezone=True), server_default=func.now())
     owner_uuid = Column(String(255), ForeignKey("users.username"))
     view_count = Column(Integer, default=0)
+    likes_count = Column(Integer, default=0)
     owner = relationship("User", back_populates="videos")
+
+
+
+class Like(Base):
+    __tablename__ = "likes"
+
+    user_id =  Column(Integer, ForeignKey("users.id"), primary_key=True)
+    video_uuid = Column(String(255), ForeignKey("videos.uuid"), primary_key=True)
+   
+

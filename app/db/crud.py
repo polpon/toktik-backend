@@ -95,3 +95,23 @@ def change_video_view(db: Session, file_name: str, add_views: int):
     
 def get_video(db: Session, file_name: str):
     return db.query(models.Video).filter(models.Video.uuid == file_name).first()
+
+
+
+def check_is_like(db: Session, user_id: int, video_name: str):
+    return db.query(models.Like).filter_by(user_id=user_id, video_uuid=video_name).first()
+
+def add_video_like(db: Session, user_id: int, video_name: str):
+    islike = check_is_like(db=db, user_id=user_id, video_name=video_name)
+    if islike is None:
+        video = db.query(models.Video).filter(models.Video.uuid == video_name).first()
+        db.query(models.Video).filter(models.Video.uuid == video_name).update({'likes_count': video.likes_count + 1})
+        db_like = models.Like(user_id=user_id, video_uuid=video_name)
+        db.add(db_like)
+        db.commit()
+        db.refresh(db_like)
+        return db.query(models.Video).filter(models.Video.uuid == video_name).first().likes_count
+    else:
+        return db.query(models.Video).filter(models.Video.uuid == video_name).first().likes_count
+
+    
