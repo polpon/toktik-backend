@@ -114,4 +114,16 @@ def add_video_like(db: Session, user_id: int, video_name: str):
     else:
         return db.query(models.Video).filter(models.Video.uuid == video_name).first().likes_count
 
+
+def unlike_video(db: Session, user_id: int, video_name: str):
+    islike = check_is_like(db=db, user_id=user_id, video_name=video_name)
+    if islike is None:
+        return db.query(models.Video).filter(models.Video.uuid == video_name).first().likes_count
+    else:
+        video = db.query(models.Video).filter(models.Video.uuid == video_name).first()
+        db.query(models.Video).filter(models.Video.uuid == video_name).update({'likes_count': video.likes_count - 1})
+        db.query(models.Like).filter_by(user_id=user_id, video_uuid=video_name).delete()
+        db.commit()
+        return db.query(models.Video).filter(models.Video.uuid == video_name).first().likes_count
+
     
