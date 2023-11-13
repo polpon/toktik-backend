@@ -394,3 +394,13 @@ async def get_all_comment(
     db: Session = Depends(get_db)
     ):
     return crud.get_all_comment_by_video(db=db, video_name=video_name)
+
+
+@router.post("/get-comment-number/{video_name}")
+async def get_comment_number(
+    video_name: str,
+    db: Session = Depends(get_db)
+    ):
+    return crud.get_number_of_comment(db=db, video_name=video_name)
+
+

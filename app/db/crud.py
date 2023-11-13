@@ -150,10 +150,15 @@ def get_all_comment_by_video(db: Session, video_name: str):
     comments = db.query(models.Comment).filter(models.Comment.video_uuid == video_name).all()
     return comments
 
+def get_number_of_comment(db: Session, video_name: str):
+    num_comments = db.query(models.Comment).filter(models.Comment.video_uuid == video_name).count()
+    return num_comments
+
+def get_comment_by_ten(db: Session, video_name: str, start_from: int):
+    comment = db.query(models.Comment).filter(models.Comment.video_uuid == video_name).order_by(start_from).limit(10).all()
 
 
 
-    
-    
 
-    
+
+
