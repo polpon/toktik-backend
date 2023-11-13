@@ -28,6 +28,7 @@ class Video(Base):
     owner_uuid = Column(String(255), ForeignKey("users.username"))
     view_count = Column(Integer, default=0)
     likes_count = Column(Integer, default=0)
+    comment_count = Column(Integer, default=0)
     owner = relationship("User", back_populates="videos")
 
 
@@ -48,3 +49,10 @@ class Comment(Base):
     day = Column(DateTime)
    
 
+class Notification(Base):
+    __tablename__ = "notifications"
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id =  Column(Integer, ForeignKey("users.id"), primary_key=True, index=True,)
+    video_uuid = Column(String(255), ForeignKey("videos.uuid"), primary_key=True, index=True,)
+    readed = Column(Boolean)
+    day = Column(DateTime)

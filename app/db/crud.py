@@ -126,19 +126,19 @@ def add_video_like(db: Session, user_uuid: int, video_name: str):
 
     
 def add_comment(db: Session, user_id: int, video_name: str, comment: str):
-    # video = db.query(models.Video).filter(models.Video.uuid == video_name).first()
+    video = db.query(models.Video).filter(models.Video.uuid == video_name).first()
     # user = db.query(models.User).filter(models.User.id == user_id).first()
     
     todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
     db_comment = models.Comment(user_id=user_id, video_uuid=video_name, content=comment, day=todays_datetime)
-    db.add(db_comment)
-    db.commit()
-    db.refresh(db_comment)
-    return db_comment
+    if db_comment is not None:
+        db.query(models.Video).filter(models.Video.uuid == video_name).update({'comment_count': video.comment_count + 1})
+        db.add(db_comment)
+        db.commit()
+        db.refresh(db_comment)
+        return db_comment
 
-def delete_comment(db: Session, comment_id: int):
-    db.query(models.Comment).filter(models.Comment.id == comment_id).delete()
-    db.commit()
+
 
 def get_comment_by_id(db: Session, comment_id: int):
     return db.query(models.Comment).filter(models.Comment.id == comment_id).first()
@@ -155,7 +155,8 @@ def get_number_of_comment(db: Session, video_name: str):
     return num_comments
 
 def get_comment_by_ten(db: Session, video_name: str, start_from: int):
-    comment = db.query(models.Comment).filter(models.Comment.video_uuid == video_name).order_by(start_from).limit(10).all()
+    comment = db.query(models.Comment).filter(models.Comment.video_uuid == video_name).order_by(models.Comment.id.desc()).filter(models.Comment.id <= start_from).limit(10).all()
+    return comment
 
 
 

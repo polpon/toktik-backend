@@ -355,38 +355,12 @@ async def create_comment(
     user_id = crud.get_user_by_username(db, username=token_data.username).id
 
     new_commnet = crud.add_comment(db=db, user_id=user_id, video_name=file.filename, comment=comment)
+
     await sio.emit("getNewComment" + file.filename, jsonable_encoder(new_commnet))
     print("New comment for: "+ file.filename)
     print(jsonable_encoder(new_commnet))
     return new_commnet
 
-
-@router.post("/delete-comment")
-async def create_comment(
-    comment_id: int,
-    token: Annotated[str, Depends(oauth2_scheme)],
-    # form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db)
-    ):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials"
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-        token_data = TokenData(username=username)
-    except JWTError:
-        raise credentials_exception
-    user_id = crud.get_user_by_username(db, username=token_data.username).id
-    comment = crud.get_comment_by_id_and_user_id(db=db, comment_id=comment_id, user_id=user_id)
-
-    if comment is not None:
-        return crud.delete_comment(db=db, comment_id=comment_id)
-    else:
-        raise HTTPException(status_code=401, detail="Unauthorized")
 
 @router.post("/get-all-comment/{video_name}")
 async def get_all_comment(
@@ -404,3 +378,11 @@ async def get_comment_number(
     return crud.get_number_of_comment(db=db, video_name=video_name)
 
 
+
+@router.post("/get-comment-number-by-ten/{video_name}")
+async def get_comment_by_ten(
+    video_name: str,
+    start_form: int,
+    db: Session = Depends(get_db)
+    ):
+    return crud.get_comment_by_ten(db=db, video_name=video_name, start_from=start_form)
