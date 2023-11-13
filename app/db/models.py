@@ -39,3 +39,12 @@ class Like(Base):
     video_uuid = Column(String(255), ForeignKey("videos.uuid"), primary_key=True)
 
 
+class Comment(Base):
+    __tablename__ = "comments"
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id =  Column(Integer, ForeignKey("users.id"), primary_key=True, index=True,)
+    video_uuid = Column(String(255), ForeignKey("videos.uuid"), primary_key=True, index=True,)
+    content = Column(String(255))
+    day = Column(DateTime)
+   
+

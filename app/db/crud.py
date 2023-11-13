@@ -4,6 +4,7 @@ from sqlalchemy.sql.expression import func
 from sqlalchemy.exc import NoResultFound
 
 from . import models, schemas
+from datetime import datetime
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -123,3 +124,36 @@ def add_video_like(db: Session, user_uuid: int, video_name: str):
     else:
         return db.query(models.Video).filter(models.Video.uuid == video_name).first().likes_count
 
+    
+def add_comment(db: Session, user_id: int, video_name: str, comment: str):
+    # video = db.query(models.Video).filter(models.Video.uuid == video_name).first()
+    # user = db.query(models.User).filter(models.User.id == user_id).first()
+    
+    todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
+    db_comment = models.Comment(user_id=user_id, video_uuid=video_name, content=comment, day=todays_datetime)
+    db.add(db_comment)
+    db.commit()
+    db.refresh(db_comment)
+    return db_comment
+
+def delete_comment(db: Session, comment_id: int):
+    db.query(models.Comment).filter(models.Comment.id == comment_id).delete()
+    db.commit()
+
+def get_comment_by_id(db: Session, comment_id: int):
+    return db.query(models.Comment).filter(models.Comment.id == comment_id).first()
+
+def get_comment_by_id_and_user_id(db: Session, comment_id: int, user_id: int):
+    return db.query(models.Comment).filter_by(user_id=user_id, id=comment_id).first()
+
+def get_all_comment_by_video(db: Session, video_name: str):
+    comments = db.query(models.Comment).filter(models.Comment.video_uuid == video_name).all()
+    return comments
+
+
+
+
+    
+    
+
+    
