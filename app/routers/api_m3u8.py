@@ -31,7 +31,7 @@ async def get_legacy_data(path: str, filename: str, db: Session = Depends(get_db
     content_type, content = get_m3u8_presigned_from_s3(path, filename)
 
     new_views = crud.change_video_view(db, path, 1)
-    await sio.emit(path, new_views, broadcast=True)
+    await sio.emit(path, new_views)
 
     return Response(content, media_type=content_type)
 

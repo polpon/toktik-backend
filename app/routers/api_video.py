@@ -14,13 +14,6 @@ from app.models.file_model import File, RandomFileName
 from jose import JWTError, jwt
 from dotenv import load_dotenv
 
-try:
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbit-mq', port=5672))
-except:
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
-
-channel = connection.channel()
-
 load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -73,6 +66,21 @@ async def uploadComplete(
     token: Annotated[str, Depends(oauth2_scheme)],
     db: Session = Depends(get_db)
     ):
+
+
+    try:
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbit-mq', port=5672))
+    except:
+        try:
+            connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        except:
+            crud.change_video_status(db, video.uuid, video.owner_uuid, "error")
+            return HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail="Could not connect to Rabbitmq"
+                    )
+
+    channel = connection.channel()
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

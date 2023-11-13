@@ -78,6 +78,34 @@ async def get_video_view_count(
 
     return like
 
+
+@router.post("/check_like")
+async def check_like(
+    file: RandomFileName,
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Session = Depends(get_db)
+    ):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials"
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    print(username, file.filename)
+
+    is_like = crud.check_is_like(db, username, file.filename)
+
+    print(is_like)
+
+    return is_like
+
+
 @router.post("/increment-video-like")
 async def increment_video_view(
     file: RandomFileName,
@@ -96,17 +124,17 @@ async def increment_video_view(
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    
-    
-    user_id = crud.get_user_by_username(db, username=token_data.username).id
-    new_likes = crud.add_video_like(db, user_id=user_id, video_name=file.filename)
+
+
+    # user_id = crud.get_user_by_username(db, username=token_data.username).id
+    new_likes = crud.add_video_like(db, user_uuid=username, video_name=file.filename)
     await sio.emit("getVideoLike" + file.filename, new_likes)
     print("increment completed for: "+ file.filename + "by 1")
     return new_likes
 
 
-@router.post("/unilike-video")
-async def increment_video_view(
+@router.post("/unlike-video")
+async def unlike_video(
     file: RandomFileName,
     token: Annotated[str, Depends(oauth2_scheme)],
     db: Session = Depends(get_db)
@@ -123,10 +151,8 @@ async def increment_video_view(
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    
-    
-    user_id = crud.get_user_by_username(db, username=token_data.username).id
-    new_likes = crud.unlike_video(db, user_id=user_id, video_name=file.filename)
+
+
+    new_likes = crud.unlike_video(db, user_uuid=token_data.username, video_name=file.filename)
     await sio.emit("getVideoLike" + file.filename, new_likes)
-    print("decrease completed for: "+ file.filename + "by 1")
     return new_likes

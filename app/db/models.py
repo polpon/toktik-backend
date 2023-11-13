@@ -35,7 +35,7 @@ class Video(Base):
 class Like(Base):
     __tablename__ = "likes"
 
-    user_id =  Column(Integer, ForeignKey("users.id"), primary_key=True)
+    user_uuid =  Column(String(255), ForeignKey("users.username"), primary_key=True)
     video_uuid = Column(String(255), ForeignKey("videos.uuid"), primary_key=True)
-   
+
 
