@@ -9,7 +9,7 @@ from app.handlers.video_handler import purge_video_from_tobechunk, purge_video_f
 from app.db.engine import SessionLocal, engine
 from app.models.token_model import TokenData
 from app.db import models, schemas, crud
-from app.models.file_model import File, RandomFileName
+from app.models.file_model import File, MessageComment, MessageCommentsStartFrom, RandomFileName
 from fastapi.encoders import jsonable_encoder
 from ..sio.socket_io import sio
 
@@ -334,8 +334,7 @@ async def unlike_video(
 
 @router.post("/add-comment-video")
 async def create_comment(
-    comment: str,
-    file: RandomFileName,
+    comment: MessageComment,
     token: Annotated[str, Depends(oauth2_scheme)],
     db: Session = Depends(get_db)
     ):
@@ -354,35 +353,34 @@ async def create_comment(
     
     user_id = crud.get_user_by_username(db, username=token_data.username).id
 
-    new_commnet = crud.add_comment(db=db, user_id=user_id, video_name=file.filename, comment=comment)
+    new_commnet = crud.add_comment(db=db, user_id=user_id, video_name=comment.filename, comment=comment)
 
-    await sio.emit("getNewComment" + file.filename, jsonable_encoder(new_commnet))
-    print("New comment for: "+ file.filename)
+    await sio.emit("getNewComment" + comment.filename, jsonable_encoder(new_commnet))
+    print("New comment for: "+ comment.filename)
     print(jsonable_encoder(new_commnet))
     return new_commnet
 
 
 @router.post("/get-all-comment/{video_name}")
 async def get_all_comment(
-    video_name: str,
+    file: RandomFileName,
     db: Session = Depends(get_db)
     ):
-    return crud.get_all_comment_by_video(db=db, video_name=video_name)
+    return crud.get_all_comment_by_video(db=db, video_name=file.filename)
 
 
 @router.post("/get-comment-number/{video_name}")
 async def get_comment_number(
-    video_name: str,
+    file: RandomFileName,
     db: Session = Depends(get_db)
     ):
-    return crud.get_number_of_comment(db=db, video_name=video_name)
+    return crud.get_number_of_comment(db=db, video_name=file.filename)
 
 
 
 @router.post("/get-comment-number-by-ten/{video_name}")
 async def get_comment_by_ten(
-    video_name: str,
-    start_form: int,
+    comment: MessageCommentsStartFrom,
     db: Session = Depends(get_db)
     ):
-    return crud.get_comment_by_ten(db=db, video_name=video_name, start_from=start_form)
+    return crud.get_comment_by_ten(db=db, video_name=comment.filename, start_from=comment.start_from)

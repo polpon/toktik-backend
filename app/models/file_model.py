@@ -13,3 +13,12 @@ class File(BaseModel):
 
 class RandomFileName(BaseModel):
     filename: str
+
+class MessageComment(BaseModel):
+    filename: str
+    comment: str
+
+class MessageCommentsStartFrom(BaseModel):
+    filename: str
+    start_from: int
+
