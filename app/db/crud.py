@@ -158,7 +158,7 @@ def get_number_of_comment(db: Session, video_name: str):
     return num_comments
 
 def get_comment_by_ten(db: Session, video_name: str, start_from: int):
-    comment = db.query(models.Comment).filter(models.Comment.video_uuid == video_name).filter(models.Comment.id >= start_from).limit(10).all()
+    comment = db.query(models.Comment).filter(models.Comment.video_uuid == video_name).order_by(models.Comment.id.desc()).filter(models.Comment.id <= start_from).limit(10).all()
     return comment
 
 
