@@ -124,11 +124,11 @@ def add_video_like(db: Session, user_uuid: int, video_name: str):
     else:
         return db.query(models.Video).filter(models.Video.uuid == video_name).first().likes_count
 
-    
+
 def add_comment(db: Session, user_id: int, video_name: str, comment: str):
     video = db.query(models.Video).filter(models.Video.uuid == video_name).first()
     # user = db.query(models.User).filter(models.User.id == user_id).first()
-    
+
     todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
     db_comment = models.Comment(user_id=user_id, video_uuid=video_name, content=comment, day=todays_datetime)
     if db_comment is not None:

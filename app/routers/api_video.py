@@ -350,10 +350,10 @@ async def create_comment(
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    
+
     user_id = crud.get_user_by_username(db, username=token_data.username).id
 
-    new_commnet = crud.add_comment(db=db, user_id=user_id, video_name=comment.filename, comment=comment)
+    new_commnet = crud.add_comment(db=db, user_id=user_id, video_name=comment.filename, comment=comment.comment)
 
     await sio.emit("getNewComment" + comment.filename, jsonable_encoder(new_commnet))
     print("New comment for: "+ comment.filename)
@@ -361,7 +361,7 @@ async def create_comment(
     return new_commnet
 
 
-@router.post("/get-all-comment/{video_name}")
+@router.post("/get-all-comment")
 async def get_all_comment(
     file: RandomFileName,
     db: Session = Depends(get_db)
@@ -369,7 +369,7 @@ async def get_all_comment(
     return crud.get_all_comment_by_video(db=db, video_name=file.filename)
 
 
-@router.post("/get-comment-number/{video_name}")
+@router.post("/get-comment-number")
 async def get_comment_number(
     file: RandomFileName,
     db: Session = Depends(get_db)
@@ -378,7 +378,7 @@ async def get_comment_number(
 
 
 
-@router.post("/get-comment-number-by-ten/{video_name}")
+@router.post("/get-comment-number-by-ten")
 async def get_comment_by_ten(
     comment: MessageCommentsStartFrom,
     db: Session = Depends(get_db)
