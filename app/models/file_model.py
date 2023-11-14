@@ -19,6 +19,7 @@ class MessageComment(BaseModel):
     comment: str
 
 class MessageCommentsStartFrom(BaseModel):
+    filename: str
     start_from: int
 
 class NumCurrentVideo(BaseModel):
