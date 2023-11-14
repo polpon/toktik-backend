@@ -61,6 +61,11 @@ def get_random_video(db: Session, username: str):
     random_videos = db.query(models.Video).filter(models.Video.owner_uuid != username).filter(models.Video.status == 'ready').order_by(func.random()).limit(10).all()
     return random_videos
 
+def get_order_video_by_view(db: Session, current_video: int):
+    comment = db.query(models.Video).order_by(models.Video.view_count.desc()).offset(current_video).limit(10).all()
+    return comment
+
+
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
@@ -138,8 +143,6 @@ def add_comment(db: Session, user_id: int, video_name: str, comment: str):
         db.refresh(db_comment)
         return db_comment
 
-
-
 def get_comment_by_id(db: Session, comment_id: int):
     return db.query(models.Comment).filter(models.Comment.id == comment_id).first()
 
@@ -155,7 +158,7 @@ def get_number_of_comment(db: Session, video_name: str):
     return num_comments
 
 def get_comment_by_ten(db: Session, video_name: str, start_from: int):
-    comment = db.query(models.Comment).filter(models.Comment.video_uuid == video_name).order_by(models.Comment.id.desc()).filter(models.Comment.id <= start_from).limit(10).all()
+    comment = db.query(models.Comment).filter(models.Comment.video_uuid == video_name).filter(models.Comment.id >= start_from).limit(10).all()
     return comment
 
 
