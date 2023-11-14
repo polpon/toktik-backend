@@ -162,7 +162,7 @@ def get_comment_by_ten(db: Session, video_name: str, start_from: int):
         comment = db.query(models.Comment).filter(models.Comment.video_uuid == video_name).order_by(models.Comment.id.desc()).limit(10).all()
         return comment
     else:
-        comment = db.query(models.Comment).filter(models.Comment.video_uuid == video_name).order_by(models.Comment.id.desc()).filter(models.Comment.id <= start_from).limit(10).all()
+        comment = db.query(models.Comment).filter(models.Comment.video_uuid == video_name).order_by(models.Comment.id.desc()).filter(models.Comment.id < start_from).limit(10).all()
         return comment
 
 
@@ -184,7 +184,7 @@ def add_notification(db: Session, video_name: str, user_id: int):
         return db_notification
 
 def get_ten_notification_by_owner_id(db: Session, user_id: int, start_from: int):
-    notification = db.query(models.Notification).filter(models.Notification.user_id == user_id).order_by(models.Notification.id.desc()).filter(models.Notification.id <= start_from).limit(10).all()
+    notification = db.query(models.Notification).filter(models.Notification.user_id == user_id).order_by(models.Notification.id.desc()).filter(models.Notification.id < start_from).limit(10).all()
     return notification
 
 def change_notification_read_status(db: Session, noti_id: int, user_id: int):
