@@ -22,3 +22,9 @@ class MessageCommentsStartFrom(BaseModel):
     filename: str
     start_from: int
 
+class NumCurrentVideo(BaseModel):
+    num_current_video: int
+
+class DeleteNotification(BaseModel):
+    notification_id: int
+

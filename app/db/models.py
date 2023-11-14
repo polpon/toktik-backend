@@ -12,7 +12,7 @@ class User(Base):
     username = Column(String(255), unique=True, index=True)
     hashed_password = Column(String(255))
     is_active = Column(Boolean, default=True)
-
+    notification_count = Column(Integer, default=0)
     videos = relationship("Video", back_populates="owner")
 
 
@@ -52,7 +52,8 @@ class Comment(Base):
 class Notification(Base):
     __tablename__ = "notifications"
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    user_id =  Column(Integer, ForeignKey("users.id"), primary_key=True, index=True,)
-    video_uuid = Column(String(255), ForeignKey("videos.uuid"), primary_key=True, index=True,)
-    readed = Column(Boolean)
+    commenter_id =  Column(Integer, ForeignKey("users.id"))
+    owner_id =  Column(Integer, ForeignKey("users.id"))
+    video_uuid = Column(String(255), ForeignKey("videos.uuid"))
+    read = Column(Boolean, default=False)
     day = Column(DateTime)
