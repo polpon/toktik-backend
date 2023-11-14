@@ -52,8 +52,8 @@ class Comment(Base):
 class Notification(Base):
     __tablename__ = "notifications"
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    commenter_id =  Column(Integer, ForeignKey("users.id"))
-    owner_id =  Column(Integer, ForeignKey("users.id"))
+    user_id =  Column(Integer, ForeignKey("users.id"))
+    
     video_uuid = Column(String(255), ForeignKey("videos.uuid"))
     read = Column(Boolean, default=False)
     day = Column(DateTime)

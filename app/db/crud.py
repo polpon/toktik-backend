@@ -172,39 +172,39 @@ def get_user_by_video(db: Session, video_name: str):
     owner_username = db.query(models.Video).filter(models.Video.uuid == video_name).first().owner_uuid
     return get_user_by_username(db=db, username=owner_username)
 
-def add_notification(db: Session, video_name: str, commenter_id: int, owner_id: int):
-    user_owner = get_user(db=db, user_id=owner_id)
+def add_notification(db: Session, video_name: str, user_id: int):
+    user = get_user(db=db, user_id=user_id)
     todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
-    db_notification = models.Notification(owner_id=owner_id,commenter_id=commenter_id, video_uuid=video_name, day=todays_datetime)
+    db_notification = models.Notification(user_id=user_id, video_uuid=video_name, day=todays_datetime)
     if db_notification is not None:
-        db.query(models.User).filter(models.User.id == owner_id).update({'notification_count': user_owner.notification_count + 1})
+        db.query(models.User).filter(models.User.id == user_id).update({'notification_count': user.notification_count + 1})
         db.add(db_notification)
         db.commit()
         db.refresh(db_notification)
         return db_notification
 
-def get_ten_notification_by_owner_id(db: Session, owner_id: int, start_from: int):
-    notification = db.query(models.Notification).filter(models.Notification.owner_id == owner_id).order_by(models.Notification.id.desc()).filter(models.Notification.id <= start_from).limit(10).all()
+def get_ten_notification_by_owner_id(db: Session, user_id: int, start_from: int):
+    notification = db.query(models.Notification).filter(models.Notification.user_id == user_id).order_by(models.Notification.id.desc()).filter(models.Notification.id <= start_from).limit(10).all()
     return notification
 
 def change_notification_read_status(db: Session, noti_id: int, user_id: int):
-    notification_status = db.query(models.Notification).filter(models.Notification.id == noti_id).filter(models.Notification.owner_id == user_id).first().read
-    if notification_status == False:
-        status = True
-        noti = db.query(models.Notification).filter(models.Notification.id == noti_id).first()
-        user_owner = get_user(db=db, user_id=noti.owner_id)
-        db.query(models.User).filter(models.User.id == noti.owner_id).update({'notification_count': user_owner.notification_count - 1})
-        db.query(models.Notification).filter(models.Notification.id == noti_id).update({'read': status})
-        db.commit()
+    notification = db.query(models.Notification).filter(models.Notification.id == noti_id).filter(models.Notification.user_id == user_id).first()
+    if notification is not None:
+        if notification.read == False:
+            status = True
+            user_owner = get_user(db=db, user_id=user_id)
+            db.query(models.User).filter(models.User.id == user_id).update({'notification_count': user_owner.notification_count - 1})
+            db.query(models.Notification).filter(models.Notification.id == noti_id).update({'read': status})
+            db.commit()
     notification = db.query(models.Notification).filter(models.Notification.id == noti_id).first()
     return notification
 
-def delete_notification(db: Session, noti_id: int, user_id: int):
-    notification = db.query(models.Notification).filter(models.Notification.id == noti_id).filter(models.Notification.owner_id == user_id).first()
-    if notification is not None:
-        noti = db.query(models.Notification).filter(models.Notification.id == noti_id).first()
-        user_owner = get_user(db=db, user_id=noti.owner_id)
-        db.query(models.User).filter(models.User.id == noti.owner_id).update({'notification_count': user_owner.notification_count - 1})
-        db.query(models.Notification).filter(models.Notification.id == noti_id).delete()
-        db.commit()
-    return notification
+# def delete_notification(db: Session, noti_id: int, user_id: int):
+#     notification = db.query(models.Notification).filter(models.Notification.id == noti_id).filter(models.Notification.owner_id == user_id).first()
+#     if notification is not None:
+#         noti = db.query(models.Notification).filter(models.Notification.id == noti_id).first()
+#         user_owner = get_user(db=db, user_id=noti.owner_id)
+#         db.query(models.User).filter(models.User.id == noti.owner_id).update({'notification_count': user_owner.notification_count - 1})
+#         db.query(models.Notification).filter(models.Notification.id == noti_id).delete()
+#         db.commit()
+#     return notification

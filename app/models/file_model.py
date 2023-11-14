@@ -28,3 +28,7 @@ class NumCurrentVideo(BaseModel):
 class DeleteNotification(BaseModel):
     notification_id: int
 
+class NotificationByUserId(BaseModel):
+    filename: str
+    user_id: int
+

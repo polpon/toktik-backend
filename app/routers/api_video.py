@@ -385,36 +385,56 @@ async def get_comment_by_ten(
     ):
     return crud.get_comment_by_ten(db=db, video_name=comment.filename, start_from=comment.start_from)
 
-
-@router.post("/add-notification")
+@router.post("/notification-all-relate-user")
 async def create_notification(
     notification_input: RandomFileName,
-    token: Annotated[str, Depends(oauth2_scheme)],
-    
     db: Session = Depends(get_db)
     ):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials"
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-        token_data = TokenData(username=username)
-    except JWTError:
-        raise credentials_exception
-    
-    user_id = crud.get_user_by_username(db, username=token_data.username).id
+    list_notifcation = []
     owner_id = crud.get_user_by_video(db=db, video_name=notification_input.filename).id
+    notification_json = crud.add_notification(db=db, video_name=notification_input.filename, user_id=owner_id)
+    list_notifcation.append(notification_json)
+    await sio.emit("getNewNotification" + str(owner_id), jsonable_encoder(notification_json))
 
-    notification_json = crud.add_notification(db=db, video_name=notification_input.filename, commenter_id=user_id, owner_id=owner_id)
+    comments = crud.get_all_comment_by_video(db, video_name=notification_input.filename)
+    for comment in comments:
+        user_id = comment.user_id
+        notification_json = crud.add_notification(db=db, video_name=notification_input.filename, user_id=user_id)
+        list_notifcation.append(notification_json)
+        await sio.emit("getNewNotification" + str(user_id), jsonable_encoder(notification_json))
 
-    await sio.emit("getNewNotification" + str(user_id), jsonable_encoder(notification_json))
-    print("New comment for: "+ notification_input.filename)
-    print(jsonable_encoder(notification_json))
-    return notification_json
+    return list_notifcation
+
+
+# @router.post("/add-notification")
+# async def create_notification(
+#     notification_input: RandomFileName,
+#     token: Annotated[str, Depends(oauth2_scheme)],
+    
+#     db: Session = Depends(get_db)
+#     ):
+#     credentials_exception = HTTPException(
+#         status_code=status.HTTP_401_UNAUTHORIZED,
+#         detail="Could not validate credentials"
+#     )
+#     try:
+#         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+#         username: str = payload.get("sub")
+#         if username is None:
+#             raise credentials_exception
+#         token_data = TokenData(username=username)
+#     except JWTError:
+#         raise credentials_exception
+    
+#     user_id = crud.get_user_by_username(db, username=token_data.username).id
+#     owner_id = crud.get_user_by_video(db=db, video_name=notification_input.filename).id
+
+#     notification_json = crud.add_notification(db=db, video_name=notification_input.filename, commenter_id=user_id, owner_id=owner_id)
+
+#     await sio.emit("getNewNotification" + str(user_id), jsonable_encoder(notification_json))
+#     print("New comment for: "+ notification_input.filename)
+#     print(jsonable_encoder(notification_json))
+#     return notification_json
 
 @router.post("/get_ten_notification_by_owner_id")
 async def get_notification_by_ten(
@@ -436,7 +456,7 @@ async def get_notification_by_ten(
         raise credentials_exception
     user_id = crud.get_user_by_username(db, username=token_data.username).id
 
-    return crud.get_ten_notification_by_owner_id(db=db, owner_id=user_id, start_from=notification_input.start_from)
+    return crud.get_ten_notification_by_owner_id(db=db, user_id=user_id, start_from=notification_input.start_from)
 
 # @router.post("/delete-notification/")
 # async def get_notification_by_ten(
