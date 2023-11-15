@@ -44,11 +44,11 @@ class Comment(Base):
     __tablename__ = "comments"
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     user_id =  Column(Integer, ForeignKey("users.id"), primary_key=True, index=True)
-    username =  Column(Integer, ForeignKey("users.username"), primary_key=True, index=True)
+    username =  Column(String(255), ForeignKey("users.username"))
     video_uuid = Column(String(255), ForeignKey("videos.uuid"), primary_key=True, index=True)
     content = Column(String(255))
     day = Column(DateTime)
-   
+
 
 class Notification(Base):
     __tablename__ = "notifications"
