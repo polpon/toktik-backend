@@ -135,7 +135,7 @@ def add_comment(db: Session, user_id: int, video_name: str, comment: str):
     # user = db.query(models.User).filter(models.User.id == user_id).first()
 
     todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
-    username = get_user(db=db, user_id=user_id)
+    username = get_user(db=db, user_id=user_id).username
     db_comment = models.Comment(user_id=user_id, video_uuid=video_name, content=comment, day=todays_datetime, username=username)
     if db_comment is not None:
         db.query(models.Video).filter(models.Video.uuid == video_name).update({'comment_count': video.comment_count + 1})
