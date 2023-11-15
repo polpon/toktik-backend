@@ -40,3 +40,6 @@ class AddNotification(BaseModel):
     filename: str
     type: str
 
+class GetNotification(BaseModel):
+    start_from: int
+

@@ -9,7 +9,7 @@ from app.handlers.video_handler import purge_video_from_tobechunk, purge_video_f
 from app.db.engine import SessionLocal, engine
 from app.models.token_model import TokenData
 from app.db import models, schemas, crud
-from app.models.file_model import AddNotification, DeleteNotification, File, MessageComment, MessageCommentsStartFrom, NumCurrentVideo, RandomFileName
+from app.models.file_model import AddNotification, DeleteNotification, File, GetNotification, MessageComment, MessageCommentsStartFrom, NumCurrentVideo, RandomFileName
 from fastapi.encoders import jsonable_encoder
 from ..sio.socket_io import sio
 
@@ -419,7 +419,7 @@ async def create_notification(
     list_notifcation = []
     for user_id in to_notify_users:
         notification_json = crud.add_notification(db=db, video_name=notification_input.filename, user_id=user_id, type=notification_input.type)
-        username = crud.get_user(db, user_id=user_id)
+        username = crud.get_user(db, user_id=user_id).username
         list_notifcation.append(notification_json)
         await sio.emit("getNewNotification" + username, jsonable_encoder(notification_json))
 
@@ -458,7 +458,7 @@ async def create_notification(
 
 @router.post("/get_ten_notification_by_owner_id")
 async def get_notification_by_ten(
-    notification_input: MessageCommentsStartFrom,
+    notification_input: GetNotification,
     token: Annotated[str, Depends(oauth2_scheme)],
     db: Session = Depends(get_db)
     ):
