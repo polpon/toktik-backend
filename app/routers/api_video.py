@@ -9,7 +9,7 @@ from app.handlers.video_handler import purge_video_from_tobechunk, purge_video_f
 from app.db.engine import SessionLocal, engine
 from app.models.token_model import TokenData
 from app.db import models, schemas, crud
-from app.models.file_model import DeleteNotification, File, MessageComment, MessageCommentsStartFrom, NumCurrentVideo, RandomFileName
+from app.models.file_model import AddNotification, DeleteNotification, File, MessageComment, MessageCommentsStartFrom, NumCurrentVideo, RandomFileName
 from fastapi.encoders import jsonable_encoder
 from ..sio.socket_io import sio
 
@@ -387,21 +387,32 @@ async def get_comment_by_ten(
 
 @router.post("/notification-all-relate-user")
 async def create_notification(
-    notification_input: RandomFileName,
+    notification_input: AddNotification,
     db: Session = Depends(get_db)
     ):
-    list_notifcation = []
+    to_notify_users = set()
     owner_id = crud.get_user_by_video(db=db, video_name=notification_input.filename).id
-    notification_json = crud.add_notification(db=db, video_name=notification_input.filename, user_id=owner_id)
-    list_notifcation.append(notification_json)
-    await sio.emit("getNewNotification" + str(owner_id), jsonable_encoder(notification_json))
+    to_notify_users.add(owner_id)
 
     comments = crud.get_all_comment_by_video(db, video_name=notification_input.filename)
     for comment in comments:
         user_id = comment.user_id
-        notification_json = crud.add_notification(db=db, video_name=notification_input.filename, user_id=user_id)
+        to_notify_users.add(user_id)
+
+    likes = crud.get_all_users_by_like_video(db=db, video_name=notification_input.filename)
+    for like in likes:
+        user_name = like.user_uuid    
+        user_id = crud.get_user_by_username(db=db, username=user_name).id
+        to_notify_users.add(user_id)
+    
+    print(to_notify_users)
+
+    list_notifcation = []
+    for user_id in to_notify_users:
+        notification_json = crud.add_notification(db=db, video_name=notification_input.filename, user_id=user_id, type=notification_input.type)
+        username = crud.get_user(db, user_id=user_id)
         list_notifcation.append(notification_json)
-        await sio.emit("getNewNotification" + str(user_id), jsonable_encoder(notification_json))
+        await sio.emit("getNewNotification" + username, jsonable_encoder(notification_json))
 
     return list_notifcation
 

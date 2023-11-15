@@ -32,3 +32,11 @@ class NotificationByUserId(BaseModel):
     filename: str
     user_id: int
 
+class NotificationByUserId(BaseModel):
+    filename: str
+    user_id: int
+
+class AddNotification(BaseModel):
+    filename: str
+    type: str
+

@@ -172,10 +172,13 @@ def get_user_by_video(db: Session, video_name: str):
     owner_username = db.query(models.Video).filter(models.Video.uuid == video_name).first().owner_uuid
     return get_user_by_username(db=db, username=owner_username)
 
-def add_notification(db: Session, video_name: str, user_id: int):
+def get_all_users_by_like_video(db: Session, video_name: str):
+    return db.query(models.Like).filter(models.Like.video_uuid == video_name).all()
+
+def add_notification(db: Session, video_name: str, user_id: int, type: str):
     user = get_user(db=db, user_id=user_id)
     todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
-    db_notification = models.Notification(user_id=user_id, video_uuid=video_name, day=todays_datetime)
+    db_notification = models.Notification(user_id=user_id, video_uuid=video_name, day=todays_datetime, type=type)
     if db_notification is not None:
         db.query(models.User).filter(models.User.id == user_id).update({'notification_count': user.notification_count + 1})
         db.add(db_notification)
@@ -184,8 +187,12 @@ def add_notification(db: Session, video_name: str, user_id: int):
         return db_notification
 
 def get_ten_notification_by_owner_id(db: Session, user_id: int, start_from: int):
-    notification = db.query(models.Notification).filter(models.Notification.user_id == user_id).order_by(models.Notification.id.desc()).filter(models.Notification.id < start_from).limit(10).all()
-    return notification
+    if start_from == 0:
+        notification = db.query(models.Notification).filter(models.Notification.user_id == user_id).order_by(models.Notification.id.desc()).limit(10).all()
+        return notification
+    else:
+        notification = db.query(models.Notification).filter(models.Notification.user_id == user_id).order_by(models.Notification.id.desc()).filter(models.Notification.id < start_from).limit(10).all()
+        return notification
 
 def change_notification_read_status(db: Session, noti_id: int, user_id: int):
     notification = db.query(models.Notification).filter(models.Notification.id == noti_id).filter(models.Notification.user_id == user_id).first()
