@@ -1,4 +1,4 @@
-import os
+import os, pika, json
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from typing import Annotated
@@ -15,6 +15,8 @@ from app.models.token_model import TokenData
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 
 from app.db import models, schemas, crud
+
+from app.rabbitmq.engine import rabbitmq
 
 load_dotenv()
 
@@ -36,12 +38,18 @@ def get_db():
     finally:
         db.close()
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/test")
 
 @router.get("/call_view")
 async def call_view():
-    await sio.emit("hello", "world")
+    rabbitmq.send_data_exchange(exchange_name='socketio', data=json.dumps({"socket_name":"4321", "data":"ggwp"}))
     return "Success"
+
+
+@router.get("/test_socket_server")
+async def test_socket_server(
+):
+    return rabbitmq.send_data_exchange(exchange_name='socketio', data=json.dumps({"socket_name":"1234", "data":"hello world"}))
 
 
 
@@ -177,7 +185,7 @@ async def call_view():
 #         token_data = TokenData(username=username)
 #     except JWTError:
 #         raise credentials_exception
-    
+
 #     user_id = crud.get_user_by_username(db, username=token_data.username).id
 
 #     new_commnet = crud.add_comment(db=db, user_id=user_id, video_name=file.filename, comment=comment)

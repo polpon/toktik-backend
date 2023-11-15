@@ -1,3 +1,5 @@
+import json
+
 from typing import Annotated
 from dotenv import load_dotenv
 
@@ -6,6 +8,7 @@ from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, Response
 
 from app.handlers.presigned_url_handler import get_m3u8_master_from_s3, get_m3u8_presigned_from_s3
+from app.rabbitmq.engine import rabbitmq
 from app.utils.auth import OAuth2PasswordBearerWithCookie
 from app.db.engine import SessionLocal
 from app.db import crud
@@ -31,7 +34,8 @@ async def get_legacy_data(path: str, filename: str, db: Session = Depends(get_db
     content_type, content = get_m3u8_presigned_from_s3(path, filename)
 
     new_views = crud.change_video_view(db, path, 1)
-    await sio.emit(path, new_views)
+    # await sio.emit(path, new_views)
+    rabbitmq.send_data_exchange(exchange_name='socketio', data=json.dumps({"socket_name":path, "data":new_views}))
 
     return Response(content, media_type=content_type)
 

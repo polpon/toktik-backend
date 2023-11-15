@@ -16,6 +16,8 @@ from ..sio.socket_io import sio
 from jose import JWTError, jwt
 from dotenv import load_dotenv
 
+from app.rabbitmq.engine import rabbitmq
+
 load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -70,19 +72,19 @@ async def uploadComplete(
     ):
 
 
-    try:
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbit-mq', port=5672))
-    except:
-        try:
-            connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
-        except:
-            crud.change_video_status(db, video.uuid, video.owner_uuid, "error")
-            return HTTPException(
-                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        detail="Could not connect to Rabbitmq"
-                    )
+    # try:
+    #     connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbit-mq', port=5672))
+    # except:
+    #     try:
+    #         connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+    #     except:
+    #         crud.change_video_status(db, video.uuid, video.owner_uuid, "error")
+    #         return HTTPException(
+    #                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    #                     detail="Could not connect to Rabbitmq"
+    #                 )
 
-    channel = connection.channel()
+    # channel = connection.channel()
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -99,14 +101,16 @@ async def uploadComplete(
 
     crud.change_video_status(db, video.uuid, video.owner_uuid, "processing")
 
-    channel.queue_declare(queue='from.backend')
+    rabbitmq.send_data(queue_name='from.backend', data=json.dumps(video.model_dump()))
 
-    channel.basic_publish(exchange='',
-                        routing_key='from.backend',
-                        body=json.dumps(video.model_dump()))
+    # channel.queue_declare(queue='from.backend')
 
-    print(f" [x] Sent '{video.uuid}'")
-    connection.close()
+    # channel.basic_publish(exchange='',
+    #                     routing_key='from.backend',
+    #                     body=json.dumps(video.model_dump()))
+
+    # print(f" [x] Sent '{video.uuid}'")
+    # connection.close()
     return
 
 
@@ -225,7 +229,7 @@ async def get_video_view_count(
     db: Session = Depends(get_db)
     ):
     view = crud.get_video(db, file.filename).view_count
-    await sio.emit(file.filename, view)
+    # await sio.emit(file.filename, view)
 
     return view
 
@@ -239,7 +243,8 @@ async def increment_video_view(
     ):
 
     new_views = crud.change_video_view(db, file.filename, 1)
-    await sio.emit(file.filename, new_views)
+    # await sio.emit(file.filename, new_views)
+    rabbitmq.send_data_exchange(exchange_name='socketio', data=json.dumps({"socket_name": file.filename, "data": new_views}))
     return new_views
 
 
@@ -249,7 +254,8 @@ async def get_video_view_count(
     db: Session = Depends(get_db)
     ):
     like = crud.get_video(db, file.filename).likes_count
-    await sio.emit("getVideoLike" + file.filename, like)
+    # await sio.emit("getVideoLike" + file.filename, like)
+    rabbitmq.send_data_exchange(exchange_name='socketio', data=json.dumps({"socket_name": "getVideoLike" + file.filename, "data": like}))
 
     return like
 
@@ -303,7 +309,8 @@ async def increment_video_view(
 
     # user_id = crud.get_user_by_username(db, username=token_data.username).id
     new_likes = crud.add_video_like(db, user_uuid=username, video_name=file.filename)
-    await sio.emit("getVideoLike" + file.filename, new_likes)
+    # await sio.emit("getVideoLike" + file.filename, new_likes)
+    rabbitmq.send_data_exchange(exchange_name='socketio', data=json.dumps({"socket_name":"getVideoLike" + file.filename, "data":new_likes}))
     print("increment completed for: "+ file.filename + "by 1")
     return new_likes
 
@@ -329,7 +336,8 @@ async def unlike_video(
 
 
     new_likes = crud.unlike_video(db, user_uuid=token_data.username, video_name=file.filename)
-    await sio.emit("getVideoLike" + file.filename, new_likes)
+    # await sio.emit("getVideoLike" + file.filename, new_likes)
+    rabbitmq.send_data_exchange(exchange_name='socketio', data=json.dumps({"socket_name":"getVideoLike" + file.filename, "data":new_likes}))
     return new_likes
 
 @router.post("/add-comment-video")
@@ -355,7 +363,8 @@ async def create_comment(
 
     new_commnet = crud.add_comment(db=db, user_id=user_id, video_name=comment.filename, comment=comment.comment)
 
-    await sio.emit("getNewComment" + comment.filename, jsonable_encoder(new_commnet))
+    # await sio.emit("getNewComment" + comment.filename, jsonable_encoder(new_commnet))
+    rabbitmq.send_data_exchange(exchange_name='socketio', data=json.dumps({"socket_name":"getNewComment" + comment.filename, "data":jsonable_encoder(new_commnet)}))
     print("New comment for: "+ comment.filename)
     print(jsonable_encoder(new_commnet))
     return new_commnet
@@ -401,10 +410,10 @@ async def create_notification(
 
     likes = crud.get_all_users_by_like_video(db=db, video_name=notification_input.filename)
     for like in likes:
-        user_name = like.user_uuid    
+        user_name = like.user_uuid
         user_id = crud.get_user_by_username(db=db, username=user_name).id
         to_notify_users.add(user_id)
-    
+
     print(to_notify_users)
 
     list_notifcation = []
@@ -421,7 +430,7 @@ async def create_notification(
 # async def create_notification(
 #     notification_input: RandomFileName,
 #     token: Annotated[str, Depends(oauth2_scheme)],
-    
+
 #     db: Session = Depends(get_db)
 #     ):
 #     credentials_exception = HTTPException(
@@ -436,7 +445,7 @@ async def create_notification(
 #         token_data = TokenData(username=username)
 #     except JWTError:
 #         raise credentials_exception
-    
+
 #     user_id = crud.get_user_by_username(db, username=token_data.username).id
 #     owner_id = crud.get_user_by_video(db=db, video_name=notification_input.filename).id
 
@@ -490,7 +499,7 @@ async def get_notification_by_ten(
 #     user_id = crud.get_user_by_username(db, username=token_data.username).id
 #     notification = crud.delete_notification(db=db, noti_id=notification_input.notification_id, user_id=user_id)
 #     if notification is not None:
-#         return notification 
+#         return notification
 #     else:
 #         raise HTTPException(status_code=404, detail="Unauthorized or Item not found")
 
@@ -516,6 +525,6 @@ async def get_notification_by_ten(
     user_id = crud.get_user_by_username(db, username=token_data.username).id
     notification = crud.change_notification_read_status(db=db, noti_id=notification_input.notification_id, user_id=user_id)
     if notification is not None:
-        return notification 
+        return notification
     else:
         raise HTTPException(status_code=404, detail="Unauthorized or Item not found")
