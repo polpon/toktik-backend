@@ -56,5 +56,6 @@ class Notification(Base):
     user_id =  Column(Integer, ForeignKey("users.id"))
     type = Column(String(255))
     video_uuid = Column(String(255), ForeignKey("videos.uuid"))
+    title = Column(String(255), ForeignKey("videos.title"))
     read = Column(Boolean, default=False)
     day = Column(DateTime)

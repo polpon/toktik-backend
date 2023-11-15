@@ -179,7 +179,8 @@ def get_all_users_by_like_video(db: Session, video_name: str):
 def add_notification(db: Session, video_name: str, user_id: int, type: str):
     user = get_user(db=db, user_id=user_id)
     todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
-    db_notification = models.Notification(user_id=user_id, video_uuid=video_name, day=todays_datetime, type=type)
+    title = get_video(db=db, file_name=video_name).title
+    db_notification = models.Notification(user_id=user_id, video_uuid=video_name, day=todays_datetime, type=type, title=title)
     if db_notification is not None:
         db.query(models.User).filter(models.User.id == user_id).update({'notification_count': user.notification_count + 1})
         db.add(db_notification)

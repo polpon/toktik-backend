@@ -421,7 +421,8 @@ async def create_notification(
         notification_json = crud.add_notification(db=db, video_name=notification_input.filename, user_id=user_id, type=notification_input.type)
         username = crud.get_user(db, user_id=user_id).username
         list_notifcation.append(notification_json)
-        await sio.emit("getNewNotification" + username, jsonable_encoder(notification_json))
+        # await sio.emit("getNewNotification" + username, jsonable_encoder(notification_json))
+        rabbitmq.send_data_exchange(exchange_name='socketio', data=json.dumps({"socket_name":"getNewNotification" + username, "data": jsonable_encoder(notification_json)}))
 
     return list_notifcation
 
