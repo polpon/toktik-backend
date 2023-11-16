@@ -58,7 +58,7 @@ def change_video_status(db: Session, video_name: str, username: str, status: str
 
 
 def get_random_video(db: Session, username: str):
-    random_videos = db.query(models.Video).filter(models.Video.owner_uuid != username).filter(models.Video.status == 'ready').order_by(func.random()).limit(10).all()
+    random_videos = db.query(models.Video).filter(models.Video.status == 'ready').order_by(func.random()).limit(10).all()
     return random_videos
 
 def get_order_video_by_view(db: Session, current_video: int):
@@ -90,8 +90,11 @@ def delete_video(db: Session, file_name: str, username: str):
     return
 
 def change_video_view(db: Session, file_name: str, add_views: int):
+
     try:
         video = db.query(models.Video).filter(models.Video.uuid == file_name).first()
+        if (add_views == 0):
+            return video.view_count
         db.query(models.Video).filter(models.Video.uuid == file_name).update({'view_count': video.view_count + add_views})
         db.commit()
         return db.query(models.Video).filter(models.Video.uuid == file_name).first().view_count
