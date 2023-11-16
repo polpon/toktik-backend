@@ -54,6 +54,7 @@ class Notification(Base):
     __tablename__ = "notifications"
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     user_id =  Column(Integer, ForeignKey("users.id"))
+    username =  Column(String(255), ForeignKey("users.username"))
     type = Column(String(255))
     video_uuid = Column(String(255), ForeignKey("videos.uuid"))
     title = Column(String(255), ForeignKey("videos.title"))

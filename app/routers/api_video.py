@@ -479,6 +479,28 @@ async def get_notification_by_ten(
 
     return crud.get_ten_notification_by_owner_id(db=db, user_id=user_id, start_from=notification_input.start_from)
 
+
+@router.post("/get_all_notification_by_owner_id")
+async def get_notification_by_ten(
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Session = Depends(get_db)
+    ):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials"
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+        token_data = TokenData(username=username)
+    except JWTError:
+        raise credentials_exception
+    user_id = crud.get_user_by_username(db, username=token_data.username).id
+    
+    return crud.get_all_notification_by_owner_id(db=db, user_id=user_id)
+
 # @router.post("/delete-notification/")
 # async def get_notification_by_ten(
 #     notification_input: DeleteNotification,
