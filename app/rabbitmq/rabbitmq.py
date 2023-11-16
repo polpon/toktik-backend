@@ -70,6 +70,7 @@ class RabbitMQConnection:
                                 routing_key='',
                                 body=data)
 
+            print(f" [x] Sent '{data}' to '{exchange_name}'")
             channel.close()
             return True
         return False

@@ -418,7 +418,7 @@ async def create_notification(
 
     list_notifcation = []
     for user_id in to_notify_users:
-        notification_json = crud.add_notification(db=db, video_name=notification_input.filename, user_id=user_id, type=notification_input.type)
+        notification_json = crud.add_notification(db=db, video_name=notification_input.filename, user_id=user_id, type=notification_input.type, username=notification_input.user_uuid)
         username = crud.get_user(db, user_id=user_id).username
         list_notifcation.append(notification_json)
         # await sio.emit("getNewNotification" + username, jsonable_encoder(notification_json))
@@ -498,7 +498,7 @@ async def get_notification_by_ten(
     except JWTError:
         raise credentials_exception
     user_id = crud.get_user_by_username(db, username=token_data.username).id
-    
+
     return crud.get_all_notification_by_owner_id(db=db, user_id=user_id)
 
 # @router.post("/delete-notification/")

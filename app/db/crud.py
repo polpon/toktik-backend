@@ -179,11 +179,11 @@ def get_user_by_video(db: Session, video_name: str):
 def get_all_users_by_like_video(db: Session, video_name: str):
     return db.query(models.Like).filter(models.Like.video_uuid == video_name).all()
 
-def add_notification(db: Session, video_name: str, user_id: int, type: str):
+def add_notification(db: Session, video_name: str, user_id: int, type: str, username: str):
     user = get_user(db=db, user_id=user_id)
     todays_datetime = datetime(datetime.today().year, datetime.today().month, datetime.today().day)
     title = get_video(db=db, file_name=video_name).title
-    db_notification = models.Notification(user_id=user_id, username=user.username, video_uuid=video_name, day=todays_datetime, type=type, title=title)
+    db_notification = models.Notification(user_id=user_id, username=username, video_uuid=video_name, day=todays_datetime, type=type, title=title)
     if db_notification is not None:
         db.query(models.User).filter(models.User.id == user_id).update({'notification_count': user.notification_count + 1})
         db.add(db_notification)
@@ -198,7 +198,7 @@ def get_ten_notification_by_owner_id(db: Session, user_id: int, start_from: int)
     else:
         notification = db.query(models.Notification).filter(models.Notification.user_id == user_id).order_by(models.Notification.id.desc()).filter(models.Notification.id < start_from).limit(10).all()
         return notification
-    
+
 
 def get_all_notification_by_owner_id(db: Session, user_id: int):
     notification = db.query(models.Notification).filter(models.Notification.user_id == user_id).order_by(models.Notification.id.desc()).all()
